@@ -30,8 +30,13 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-ns = {'n1': 'https://psd-12.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd'}
-bandProperties = {0: {'bandName': 'B01', 'bandIndex': 0, 'filename': 'B01.jp2', 'wavelengthMin': 433.0, 'wavelengthMax': 453.0 },
+ns = {'n1': 'https://psd-12.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd', 
+        'n2': 'https://psd-14.sentinel2.eo.esa.int/PSD/S2_PDI_Level-2A_Tile_Metadata.xsd',
+        'nx': ''} # nx is set either to n1 or n2 depending on the processed metadata file
+
+bandProperties = {
+                  13: {'bandName': 'B00', 'bandIndex': 0, 'filename': '../qi/CLD_20m.jp2', 'wavelengthMin': 0.0, 'wavelengthMax': 0.0 },
+                  0: {'bandName': 'B01', 'bandIndex': 0, 'filename': 'B01.jp2', 'wavelengthMin': 433.0, 'wavelengthMax': 453.0 },
                   1: {'bandName': 'B02', 'bandIndex': 1, 'filename': 'B02.jp2', 'wavelengthMin': 458.0, 'wavelengthMax': 522.0 },
                   2: {'bandName': 'B03', 'bandIndex': 2, 'filename': 'B03.jp2', 'wavelengthMin': 543.0, 'wavelengthMax': 577.0 },
                   3: {'bandName': 'B04', 'bandIndex': 3, 'filename': 'B04.jp2', 'wavelengthMin': 650.0, 'wavelengthMax': 680.0 },
@@ -43,11 +48,13 @@ bandProperties = {0: {'bandName': 'B01', 'bandIndex': 0, 'filename': 'B01.jp2', 
                   9: {'bandName': 'B09', 'bandIndex': 9, 'filename': 'B09.jp2', 'wavelengthMin': 935.0, 'wavelengthMax': 955.0 },
                   10: {'bandName': 'B10', 'bandIndex': 10, 'filename': 'B10.jp2', 'wavelengthMin': 1360.0, 'wavelengthMax': 1390.0 },
                   11: {'bandName': 'B11', 'bandIndex': 11, 'filename': 'B11.jp2', 'wavelengthMin': 1565.0, 'wavelengthMax': 1655.0 },
-                  12: {'bandName': 'B12', 'bandIndex': 12, 'filename': 'B12.jp2', 'wavelengthMin': 2100.0, 'wavelengthMax': 2280.0 }  
+                  12: {'bandName': 'B12', 'bandIndex': 12, 'filename': 'B12.jp2', 'wavelengthMin': 2100.0, 'wavelengthMax': 2280.0 }
                 }
 Rxm = { '10m': { 'bandKeys': [1, 2, 3, 7], 'rasterFunctionTemplate': 'Composite4Bands.rft.xml' },
-        '20m': { 'bandKeys': [1, 2, 3, 4, 5, 6, 8, 11, 12], 'rasterFunctionTemplate': 'Composite9Bands.rft.xml' }
+        '20m': { 'bandKeys': [1, 2, 3, 4, 5, 6, 8, 11, 12], 'rasterFunctionTemplate': 'Composite9Bands.rft.xml'},
+        '20c': { 'bandKeys': [13, 1, 2, 3, 4, 5, 6, 8, 11, 12], 'rasterFunctionTemplate': 'Composite10Bands.rft.xml' }  # 20m + cloudMask as band B00
 }
+
 
 class DataSourceType():
     Unknown = 0
@@ -58,8 +65,6 @@ class DataSourceType():
 class RasterTypeFactory():
 
     def getRasterTypesInfo(self):
-
-        print("pyta raster")
         self.acquisitionDate_auxField = arcpy.Field()
         self.acquisitionDate_auxField.name = 'AcquisitionDate'
         self.acquisitionDate_auxField.aliasName = 'Acquisition Date'
@@ -89,14 +94,13 @@ class RasterTypeFactory():
         self.vegetationPercentage_auxField.aliasName = 'Vegetation Percentage'
         self.vegetationPercentage_auxField.type = 'Double'
         self.vegetationPercentage_auxField.precision = 5
-        print("---- robim raster type")
         rasterTypes = [
                 {
                     'rasterTypeName': 'Sentinel-2-L2A-10mTile',
                     'builderName': 'Sentinel210mTileBuilder',
                     'dataSourceType': (DataSourceType.File),
                     'dataSourceFilter': 'metadata.xml',
-                    'description': ("Supports reading of Sentinel-2 Level 2A Tiles with various resolutions."
+                    'description': ("Supports reading of Sentinel-2 Level 2A Tiles with 10m resolution."
                                     "Level 2A tile products metadata files"),
                     'supportsOrthorectification': False,
                     'enableClipToFootprint': True,
@@ -137,7 +141,7 @@ class RasterTypeFactory():
                     'builderName': 'Sentinel220mTileBuilder',
                     'dataSourceType': (DataSourceType.File),
                     'dataSourceFilter': 'metadata.xml',
-                    'description': ("Supports reading of Sentinel-2 Level 2A Tiles with various resolutions."
+                    'description': ("Supports reading of Sentinel-2 Level 2A Tiles with 20m resolution."
                                     "Level 2A tile products metadata files"),
                     'supportsOrthorectification': False,
                     'enableClipToFootprint': True,
@@ -172,9 +176,49 @@ class RasterTypeFactory():
                                self.acquisitionDate_auxField,
                                self.cloudCoverage_auxField,
                                self.vegetationPercentage_auxField]
+                },
+                {
+                    'rasterTypeName': 'Sentinel-2-L2A-20mCloudTile',
+                    'builderName': 'Sentinel220mCloudTileBuilder',
+                    'dataSourceType': (DataSourceType.File),
+                    'dataSourceFilter': 'metadata.xml',
+                    'description': ("Supports reading of Sentinel-2 Level 2A Tiles with 20m resolution and cloud mask."
+                                    "Level 2A tile products metadata files"),
+                    'supportsOrthorectification': False,
+                    'enableClipToFootprint': True,
+                    'isRasterProduct': True,
+                    # #'crawlerName': 'Sentinel2Tile10mCrawler',
+                    'productDefinitionName': 'Sentinel-2_L2A_Tile',
+                    'supportedUriFilters': [
+                                            {
+                                                'name': 'Tile',
+                                                'allowedProducts': [
+                                                                    'Sentinel-2_L2A_Tile'
+                                                                   ],
+                                                'supportsOrthorectification': False,
+                                                'supportedTemplates': [
+                                                                        'Composite20mBandsCloud'
+                                                                      ]
+                                            }
+                                           ],
+                    'processingTemplates': [
+                                            {
+                                                'name': 'Composite20mBandsCloud',
+                                                'enabled': True,
+                                                'outputDatasetTag': '20m-10Band',
+                                                'primaryInputDatasetTag': '20m',
+                                                'isProductTemplate': True,
+                                                'functionTemplate': Rxm['20c']['rasterFunctionTemplate']
+                                            }
+                                           ],
+                    'bandProperties': [bandProperties[k] for k in bandProperties if k in Rxm['20c']['bandKeys']],
+                    'fields': [self.sensorName_auxField,
+                               self.productName_auxField,
+                               self.acquisitionDate_auxField,
+                               self.cloudCoverage_auxField,
+                               self.vegetationPercentage_auxField]
                 }
                ]
-        print("-----   returnujem types")
         return rasterTypes
 
 
@@ -231,7 +275,7 @@ class Utilities():
         return None
 
     def getBandAngles(self, tree):
-        angles = tree.find('./n1:Geometric_Info/Tile_Angles/Mean_Viewing_Incidence_Angle_List', ns)
+        angles = tree.find('./nx:Geometric_Info/Tile_Angles/Mean_Viewing_Incidence_Angle_List', ns)
         bandAngles = {}
         if angles is not None:
             for band_info in angles:
@@ -246,138 +290,16 @@ class Utilities():
                 bandAngles[bandAngle['SourceBandIndex']] = bandAngle
         return bandAngles
 
-    def build10m(self, resolution):
-        print("----- building itemURI")
-        print(itemURI)
-        # Make sure that the itemURI dictionary contains items
-        if len(itemURI) <= 0:
-            return None
-        try:
-            # ItemURI dictionary passed from crawler containing
-            # path, tag, display name, group name, product type
-            path = None
-            if 'path' in itemURI:
-                path = itemURI['path']
-            else:
-                return None
-
-            # The metadata file is a XML file
-            tree = cacheElementTree(path)
-            # Horizontal CS (can also be a arcpy.SpatialReference object,
-            # EPSG code, path to a PRJ file or a WKT string)
-            srsEPSG = 0
-            #Here, using the epsg code to build srs            
-            projectionNode = tree.find('./n1:Geometric_Info/Tile_Geocoding/HORIZONTAL_CS_CODE', ns)
-
-            if projectionNode is not None:
-                srsEPSG = int((projectionNode.text).split(":")[1]) #to get EPSG code
-
-            # Dataset frame - footprint; this is a list of Vertex coordinates from tileInfo.json
-            vertex_array = arcpy.Array()
-            folder, filename = os.path.split(path)
-            with open(os.path.join(folder, 'tileInfo.json'), 'r') as f:
-                tileInfo = json.load(f)
-            if ('tileDataGeometry' in tileInfo) and ('coordinates' in tileInfo['tileDataGeometry']):
-                for vertex in tileInfo['tileDataGeometry']['coordinates'][0]:
-                    x_vertex = vertex[0]
-                    y_vertex = vertex[1]                    
-                    vertex_array.add(arcpy.Point(x_vertex, y_vertex))
-            #the order of vertices must be ul, ur, lr, ll
-
-            # Get geometry object for the footprint; the SRS of the
-            # footprint can also be passed if it is different to the
-            # SRS read from the metadata; by default, the footprint
-            # geometry is assumed to be in the SRS of the metadata
-            footprint_geometry = arcpy.Polygon(vertex_array)
-
-            # Other keyProperties information (Cloud Coverage, Vegeneation Percentage etc)
-            keyProperties = {}
-            keyProperties['Footprint'] = footprint_geometry
-            keyProperties['BlockName'] = self.utilities.getGroupName(path)
-            keyProperties['SensorName'] = self.SensorName
-            keyProperties['ProductType'] = self.utilities.getProductType(path)
-            #Set the Product Name
-            if keyProperties['ProductType'] == 'Sentinel-2_L2A_Tile':
-                keyProperties['ProductName'] = self.utilities.getProductName(path)
-                itemURI['GroupName'] = self.utilities.getGroupName(path)
-                itemURI['DisplayName'] = self.utilities.getDisplayName(path)
-
-            # Get the acquisition date of the scene
-            sensing_time = tree.find('./n1:General_Info/SENSING_TIME', ns)            
-            if sensing_time is not None:
-                keyProperties['AcquisitionDate'] = sensing_time.text
-
-            quality_indi = tree.find('./n1:Quality_Indicators_Info', ns) 
-            if quality_indi is not None:
-                # Get the Cloud Coverage
-                cloudCoverage = quality_indi.find('./L2A_Image_Content_QI/CLOUD_COVERAGE_PERCENTAGE')
-                if cloudCoverage is not None:
-                    keyProperties['CloudCoverage'] = float(cloudCoverage.text)
-                    keyProperties['CloudCover'] = float(cloudCoverage.text)
-
-                # Get the Sun Azimuth
-                vegetationPercentage = quality_indi.find('./L2A_Image_Content_QI/VEGETATION_PERCENTAGE')
-                if vegetationPercentage is not None:
-                    keyProperties['VegetationPercentage'] = float(vegetationPercentage.text)
-
-            buildItemsList = list()
-
-            for prod in ['R10m']:
-                buildItem = {}
-                imfolder = os.path.join(folder, prod)
-                images = ['B02.jp2', 'B03.jp2', 'B04.jp2', 'B08.jp2']
-                imparam = ";".join([os.path.join(imfolder, im) for im in images])
-                imparam = [os.path.join(imfolder, im) for im in images]
-                buildItem['raster'] = {
-                    'functionDataset': {
-                        'rasterFunction': rasterFunctionTemplate,
-                        'rasterFunctionArguments': {
-                            'Raster1': imparam[0],
-                            'Raster2': imparam[1],
-                            'Raster3': imparam[2],
-                            'Raster4': imparam[3]
-                        }
-                    }
-                }
-                ba = self.utilities.getBandAngles(tree)
-                keyProperties['bandProperties'] = [{
-                    'BandName': bandProperties[b]['bandName'], 
-                    'WavelengthMin': bandProperties[b]['wavelengthMin'],
-                    'WavelengthMax': bandProperties[b]['wavelengthMax'],
-                    'SourceBandIndex': bandProperties[b]['bandIndex'], 
-                    'ZenithAngle': ba[b]['ZenithAngle'], 
-                    'AzimuthAngle': ba[b]['AzimuthAngle'],
-                    'Unit': ba[b]['Unit']
-                    } for b in bandProperties if bandProperties[b]['datasetTag'] == '10m']
-
-                print("----- mam keyprops")
-                buildItem['itemURI'] = {'displayName': self.utilities.getDisplayName(path), 
-                                        'groupName': self.utilities.getGroupName(path)}
-                buildItem['spatialReference'] = srsEPSG
-                buildItem['footprint'] = footprint_geometry
-                buildItem['keyProperties'] = keyProperties
-                buildItemsList.append(buildItem)
-
-            print("-------   returnujem builditems")
-            print(buildItemsList)
-            return buildItemsList
-
-        except:
-            print ("Exception z buildera")
-            raise
-
 # ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ##
 # Sentinel 2 Tile builder class
 # ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ##
 
 
-class Sentinel2TileBuilder():
+class Sentinel2TileBuilder(object):
 
     def __init__(self, **kwargs):
-        print("-----Initializing Builder ")
         self.SensorName = 'Sentinel-2'
         self.utilities = Utilities()
-        print("-----Builder initialized")
 
     def canOpen(self, datasetPath):
         # Open the datasetPath and check if the XML metadata file contains the element Level-2A_Tile_ID
@@ -385,10 +307,9 @@ class Sentinel2TileBuilder():
         return res
 
     def buildResolution(self, itemURI, resolution):
-        """ For resolution use one of strings  10m | 20m | 60m """
-        print("----- building itemURI")
-        print(itemURI)
+        """ For resolution use one of strings  10m | 20m | 20c | 60m """
         # Make sure that the itemURI dictionary contains items
+        print("--- buildujem resolution " + resolution)
         if len(itemURI) <= 0:
             return None
         try:
@@ -401,12 +322,21 @@ class Sentinel2TileBuilder():
                 return None
 
             # The metadata file is a XML file
+                #set the correct namespace
+            ns["nx"] = ""
+            with open(path, "r") as f:
+                # check first 2 lines for namespace
+                for i in range(2):
+                    line = f.readline()
+                    ns["nx"] = ns["n1"] if ns["n1"] in line else ns["nx"]
+                    ns["nx"] = ns["n2"] if ns["n2"] in line else ns["nx"]
+
             tree = cacheElementTree(path)
             # Horizontal CS (can also be a arcpy.SpatialReference object,
             # EPSG code, path to a PRJ file or a WKT string)
             srsEPSG = 0
             #Here, using the epsg code to build srs            
-            projectionNode = tree.find('./n1:Geometric_Info/Tile_Geocoding/HORIZONTAL_CS_CODE', ns)
+            projectionNode = tree.find('./nx:Geometric_Info/Tile_Geocoding/HORIZONTAL_CS_CODE', ns)
 
             if projectionNode is not None:
                 srsEPSG = int((projectionNode.text).split(":")[1]) #to get EPSG code
@@ -429,6 +359,7 @@ class Sentinel2TileBuilder():
             # geometry is assumed to be in the SRS of the metadata
             footprint_geometry = arcpy.Polygon(vertex_array)
 
+            print("---- mam footprint")
             # Other keyProperties information (Cloud Coverage, Vegeneation Percentage etc)
             keyProperties = {}
             keyProperties['Footprint'] = footprint_geometry
@@ -442,11 +373,11 @@ class Sentinel2TileBuilder():
                 itemURI['DisplayName'] = self.utilities.getDisplayName(path)
 
             # Get the acquisition date of the scene
-            sensing_time = tree.find('./n1:General_Info/SENSING_TIME', ns)            
+            sensing_time = tree.find('./nx:General_Info/SENSING_TIME', ns)            
             if sensing_time is not None:
                 keyProperties['AcquisitionDate'] = sensing_time.text
 
-            quality_indi = tree.find('./n1:Quality_Indicators_Info', ns) 
+            quality_indi = tree.find('./nx:Quality_Indicators_Info', ns) 
             if quality_indi is not None:
                 # Get the Cloud Coverage
                 cloudCoverage = quality_indi.find('./L2A_Image_Content_QI/CLOUD_COVERAGE_PERCENTAGE')
@@ -460,8 +391,25 @@ class Sentinel2TileBuilder():
                     keyProperties['VegetationPercentage'] = float(vegetationPercentage.text)
 
             buildItemsList = list()
-            buildItem = {}            
-            imparam = [os.path.join(folder, 'R'+resolution, bandProperties[k]['filename']) for k in Rxm[resolution]['bandKeys']]
+            buildItem = {} 
+            imparam = [os.path.join(folder, 'R'+resolution.replace("c", "m"), bandProperties[k]['filename']) for k in Rxm[resolution]['bandKeys']]
+            print(imparam)
+            print("----- robim world files")
+            geopos = tree.find("./nx:Geometric_Info/Tile_Geocoding/Geoposition[@resolution='" + resolution[:-1] + "']", ns)            
+            for im in imparam:
+                print("--- world file {0}".format(im[:-3]+'j2w'))
+                with open(im[:-3]+'j2w', "w") as wf:
+                    #print("-- pisem uvod")
+                    wf.write(resolution[:-1] + "\n0\n-0\n-" + resolution[:-1] + "\n")
+                    #print("-- pisem x")
+                    #print("geopos " + str(geopos))
+                    #print("ULX raw '" + geopos.find("ULX").text + "'")
+                    #print("ULX " + str(int(geopos.find("ULX").text)))
+                    #print("XDIM " + str(int(geopos.find("XDIM").text)/2))
+                    wf.write(str(int(geopos.find("ULX").text) + int(geopos.find("XDIM").text)/2) + "\n")
+                    #print("-- pisem y")
+                    wf.write(str(int(geopos.find("ULY").text) + int(geopos.find("YDIM").text)/2) + "\n")
+            print("----- mam world files")
 
             rfa = {}
             for i in range(len(imparam)):
@@ -472,24 +420,25 @@ class Sentinel2TileBuilder():
                     'rasterFunctionArguments': rfa
                 }
             }
+            print("--- getting band angles")
             ba = self.utilities.getBandAngles(tree)
             keyProperties['bandProperties'] = [{
                 'BandName': bandProperties[b]['bandName'], 
                 'WavelengthMin': bandProperties[b]['wavelengthMin'],
                 'WavelengthMax': bandProperties[b]['wavelengthMax'],
                 'SourceBandIndex': bandProperties[b]['bandIndex'], 
-                'ZenithAngle': ba[b]['ZenithAngle'], 
-                'AzimuthAngle': ba[b]['AzimuthAngle'],
-                'Unit': ba[b]['Unit']
+                'ZenithAngle': ba[bandProperties[b]['bandIndex']]['ZenithAngle'], 
+                'AzimuthAngle': ba[bandProperties[b]['bandIndex']]['AzimuthAngle'],
+                'Unit': ba[bandProperties[b]['bandIndex']]['Unit']
                 } for b in bandProperties if b in Rxm[resolution]['bandKeys']]
-
+            print("--- nastabujem buildItem")
             buildItem['itemURI'] = {'displayName': self.utilities.getDisplayName(path) if not (buildItemsList) else None, 
                                     'groupName': self.utilities.getGroupName(path)}
             buildItem['spatialReference'] = srsEPSG
             buildItem['footprint'] = footprint_geometry
             buildItem['keyProperties'] = keyProperties
             buildItemsList.append(buildItem)
-
+            print("----Builder hotovo")
             return buildItemsList
 
         except:
@@ -506,6 +455,12 @@ class Sentinel220mTileBuilder(Sentinel2TileBuilder):
 
     def build(self, itemURI):
         return self.buildResolution(itemURI, '20m')
+
+class Sentinel220mCloudTileBuilder(Sentinel2TileBuilder):
+
+    def build(self, itemURI):
+        print("Building 20m cloud product.")
+        return self.buildResolution(itemURI, '20c')
 
 
 # ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ## ----- ##

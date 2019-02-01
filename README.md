@@ -23,7 +23,7 @@ These multiband rasters are created from R10m, R20m source image folders and the
 ### Instalation
 To install create a new directory under 
 `C:\Program Files\ArcGIS\Pro\Resources\Raster\Types\System\`
-named *Sentinel-2-Tile* and copy the python files and raster function templates defined in `*.rft.xml` files to the directory.
+named *Sentinel-2-Tile* and copy the `Sentinel-2-Tile.py` python file and raster function templates `*.rft.xml` to the directory.
 After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
 Tested under ArcGIS Pro 2.2 and 2.3.
 
