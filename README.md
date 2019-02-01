@@ -11,20 +11,34 @@ The granules are also cut to 100x100km tiles according to the military grid ([km
 The raster storage on Amazon S3 is organized to a file system structure with metadata and images for every band in separate files. This Sentinel-2 raster type allows you to read the file structure and load the rasters to mosaic dataset in ArcGIS Pro. 3 new raster products become available after installation
 - *Sentinel-2-L2A-10mTile* which is a 4-band raster (red, green, blue and near infrared) with 10m/px resolution
 - *Sentinel-2-L2A-20mTile* which is a 9-band raster with 20m/px resolution
-- *Sentinel-2-L2A-20mTileCloud * which is a 10-band raster with 20m/px resolution, similar to Sentinel-2-L2A-20mTile with additional cloud mast raster band B00.
+- *Sentinel-2-L2A-20mTileCloud* which is a 10-band raster with 20m/px resolution, similar to Sentinel-2-L2A-20mTile with additional cloud mast raster band B00.
+
 These multiband rasters are created from R10m, R20m source image folders and their content.
+
+
+*Acquisition Date*, *Cloud Coverage* and *Vegetation Percentage* attributes are also added to filter resulting rasters.
+
+![Raster Attributes](./images/RasterAttributes.png)
 
 ### Instalation
 To install create a new directory under 
 `C:\Program Files\ArcGIS\Pro\Resources\Raster\Types\System\`
 named *Sentinel-2-Tile* and copy the python files and raster function templates defined in `*.rft.xml` files to the directory.
 After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
+Tested under ArcGIS Pro 2.2 and 2.3.
 
-### Loading tiles
-You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. However, I provide also sample script (*SentinelImporter.py*) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
+<img src="./images/NewRasterTypes.png" width="440">
 
-To create a mosaic dataset for your imaginery just call
-```SentinelImporter.createMosaicDataset(workspace, "mosaic_dataset_name", "10m")```
+### Loading Tiles
+You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. Just use the *metadata.xml* file in the source tile root directory as the raster file.
+
+<img src="./images/AddRasterToMosaicDataset.png" width="440">
+
+
+However, I provide also sample script ([SentinelImporter.py](./SentinelImporter.py)) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
+
+To create a mosaic dataset for your imaginery just call (just take care of the spatial reference)
+```SentinelImporter.createMosaicDataset(workspace, "mosaic_dataset_name", "10m", arcpy.SpatialReference(32634))```
 
 Use `10m`, `20m` or `20c` to specify the raster type Sentinel-2-L2A-10mTile, Sentinel-2-L2A-20mTile or Sentinel-2-L2A-20m CloudMask respectively for the mosaic dataset.
 
@@ -35,12 +49,12 @@ Additionaly the script can generate also a cloud mask featureclass by parsing *q
 Just have a look on the script code. It's only 3 lines altogether...
 
 ```
-    # Create Tile Mask FeatureClass
+    # create tile mask featureClass
     cloudmask_featureclass = CloudMask.createFeatureClass(workspace, "CloudMask", arcpy.SpatialReference(32634))
 
-    # Create Mosaic Dataset
-    mosaic_dataset = SentinelImporter.createMosaicDataset(workspace, "S2-10m", "10m")
+    # create mosaic dataset
+    mosaic_dataset = SentinelImporter.createMosaicDataset(workspace, "S2-10m", "10m", arcpy.SpatialReference(32634))
 
-    # Load Rasters
+    # load rasters
     loadedRasters = SentinelImporter.importTiles("E:/Sentinel_tiles_from_amazonS3/", mosaic_dataset, "10m", cloudmask_featureclass)
 ```
