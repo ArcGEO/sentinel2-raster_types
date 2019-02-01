@@ -24,7 +24,7 @@ named *Sentinel-2-Tile* and copy the python files and raster function templates 
 After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
 Tested under ArcGIS Pro 2.2 and 2.3.
 
-![New Raster Types in ArcGIS Pro](./images/NewRasterTypes.png){:width="440px"}
+![New Raster Types in ArcGIS Pro](./images/NewRasterTypes.png?v=4&s=440)
 
 ### Loading tiles
 You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. However, I provide also sample script (*SentinelImporter.py*) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
