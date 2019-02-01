@@ -15,7 +15,7 @@ The raster storage on Amazon S3 is organized to a file system structure with met
 These multiband rasters are created from R10m, R20m source image folders and their content.
 *Acquisition Date*, *Cloud Coverage* and *Vegetation Percentage* attributes are also added to filter resulting rasters.
 
-[Raster Attributes](./images/RasterAttributes.png)
+![Raster Attributes](./images/RasterAttributes.png)
 
 ### Instalation
 To install create a new directory under 
@@ -24,7 +24,7 @@ named *Sentinel-2-Tile* and copy the python files and raster function templates 
 After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
 Tested under ArcGIS Pro 2.2 and 2.3.
 
-[New Raster Types in ArcGIS Pro](./images/NewRasterTypes.png)
+![New Raster Types in ArcGIS Pro](./images/NewRasterTypes.png)
 
 ### Loading tiles
 You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. However, I provide also sample script (*SentinelImporter.py*) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
