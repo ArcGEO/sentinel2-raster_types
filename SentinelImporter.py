@@ -25,7 +25,7 @@ class CloudMask(object):
             parray = feature.find("eop:extentOf/gml:Polygon/gml:exterior/gml:LinearRing/gml:posList", cls.ns).text
             coords = [int(coor) for coor in parray.split(" ")]
             points = [[coords[2*i], coords[2*i+1]] for i in range(len(coords)//2)]
-            shape = arcpy.Polygon(arcpy.Array([arcpy.Point(*pc) for pc in points]))
+            shape = arcpy.Polygon(arcpy.Array([arcpy.Point(*pc) for pc in points]), arcpy.SpatialReference(int(wkid)))
             features.append((fid, ftype, tile, ts, shape))
         return features
 
@@ -43,9 +43,14 @@ class CloudMask(object):
     @classmethod
     def insertFeatures(cls, features, outputFC):
         """ A polygon featureclass with attributes Id[Text(20)], Type[Text(20)], Tile[Text(20)], Timestamp[Date], Shape[Polygon] is expected in outputFC """
+        outSR = arcpy.Describe(outputFC).spatialReference
+
         with arcpy.da.InsertCursor(outputFC, ["Id", "Type","Tile", "Timestamp", "Shape@"]) as icur:
             for feature in features:
-                icur.insertRow((feature[0], feature[1], feature[2], feature[3], feature[4]))
+                geom = feature[4]
+                if outSR.factoryCode != geom.spatialReference.factoryCode:
+                    geom.projectAs(outSR)
+                icur.insertRow((feature[0], feature[1], feature[2], feature[3], geom))
 
     @classmethod
     def appendFeatures(cls, maskGmlFile, outputFeatureClass):
@@ -61,7 +66,7 @@ class SentinelImporter(object):
         print("FGDB created.")
 
     @classmethod
-    def createMosaicDataset(cls, workspace, mosaicDsName=None, resolution="10m", spatialReference):
+    def createMosaicDataset(cls, workspace, mosaicDsName=None, resolution="10m", spatialReference=None):
         """ if mosaicDSName is none it generates a new name in the form of THHMMSS. """
         bands = {"10m": "B02 458 522;B03 543 577;B04 650 680;B08 784 899",
                  "20m": "B02 458 522;B03 543 577;B04 650 680;B05 698 712;B06 733 747;B07 773 793;B8A 855 875;B11 1565 1655;B12 2100 2280",
@@ -120,12 +125,14 @@ def cacheElementTree(path):
         return tree
 
 if __name__ == '__main__':
+
     workspace = arcpy.env.workspace
+
     # Create Tile Mask FeatureClass
     cloudmask_featureclass = CloudMask.createFeatureClass(workspace, "CloudMask", arcpy.SpatialReference(32634))
 
     # Create Mosaic Dataset
-    mosaic_dataset = SentinelImporter.createMosaicDataset(workspace, "S2-10m", "10m", arcpy.SpatialReference(32634))
+    mosaic_dataset = SentinelImporter.createMosaicDataset(workspace, "mosaic_dataset_name", "10m", arcpy.SpatialReference(32634))
 
     # Load Rasters
     loadedRasters = SentinelImporter.importTiles("E:/Sentinel_tiles_from_amazonS3/", mosaic_dataset, "10m", cloudmask_featureclass)

@@ -54,6 +54,6 @@
   <Type>2</Type>
   <Thumbnail xsi:type="xs:string"></Thumbnail>
   <Definition></Definition>
-  <Group>10m4Bands</Group>
+  <Group>GroupName</Group>
   <Tag>Tag</Tag>
 </XmlRasterFunctionTemplate>

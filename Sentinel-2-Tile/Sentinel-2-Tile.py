@@ -230,7 +230,6 @@ class RasterTypeFactory():
 class Utilities():
 
     def isS2Tile(self, path):
-        print("----- is s2 tile " + str(path))
         # check for element name
         # check for tileInfo.json
         # check for directory and jp2 files
@@ -264,7 +263,7 @@ class Utilities():
             tileInfo = json.load(f)
         if 'utmZone' in tileInfo and 'latitudeBand' in tileInfo and 'gridSquare' in tileInfo:
             return "T{0}{1}{2}".format(tileInfo['utmZone'], tileInfo['latitudeBand'], tileInfo['gridSquare'])
-        return None        
+        return None
 
     def getDisplayName(self, path):
         prodName = self.getProductName(path)
@@ -307,9 +306,9 @@ class Sentinel2TileBuilder(object):
         return res
 
     def buildResolution(self, itemURI, resolution):
-        """ For resolution use one of strings  10m | 20m | 20c | 60m """
+        """ For resolution use one of strings  10m | 20m | 20c """
         # Make sure that the itemURI dictionary contains items
-        print("--- buildujem resolution " + resolution)
+
         if len(itemURI) <= 0:
             return None
         try:
@@ -357,9 +356,8 @@ class Sentinel2TileBuilder(object):
             # footprint can also be passed if it is different to the
             # SRS read from the metadata; by default, the footprint
             # geometry is assumed to be in the SRS of the metadata
-            footprint_geometry = arcpy.Polygon(vertex_array)
+            footprint_geometry = arcpy.Polygon(vertex_array, arcpy.SpatialReference(srsEPSG) if srsEPSG > 0 else None)
 
-            print("---- mam footprint")
             # Other keyProperties information (Cloud Coverage, Vegeneation Percentage etc)
             keyProperties = {}
             keyProperties['Footprint'] = footprint_geometry
@@ -393,23 +391,13 @@ class Sentinel2TileBuilder(object):
             buildItemsList = list()
             buildItem = {} 
             imparam = [os.path.join(folder, 'R'+resolution.replace("c", "m"), bandProperties[k]['filename']) for k in Rxm[resolution]['bandKeys']]
-            print(imparam)
-            print("----- robim world files")
+
             geopos = tree.find("./nx:Geometric_Info/Tile_Geocoding/Geoposition[@resolution='" + resolution[:-1] + "']", ns)            
             for im in imparam:
-                print("--- world file {0}".format(im[:-3]+'j2w'))
                 with open(im[:-3]+'j2w', "w") as wf:
-                    #print("-- pisem uvod")
                     wf.write(resolution[:-1] + "\n0\n-0\n-" + resolution[:-1] + "\n")
-                    #print("-- pisem x")
-                    #print("geopos " + str(geopos))
-                    #print("ULX raw '" + geopos.find("ULX").text + "'")
-                    #print("ULX " + str(int(geopos.find("ULX").text)))
-                    #print("XDIM " + str(int(geopos.find("XDIM").text)/2))
                     wf.write(str(int(geopos.find("ULX").text) + int(geopos.find("XDIM").text)/2) + "\n")
-                    #print("-- pisem y")
                     wf.write(str(int(geopos.find("ULY").text) + int(geopos.find("YDIM").text)/2) + "\n")
-            print("----- mam world files")
 
             rfa = {}
             for i in range(len(imparam)):
@@ -420,7 +408,7 @@ class Sentinel2TileBuilder(object):
                     'rasterFunctionArguments': rfa
                 }
             }
-            print("--- getting band angles")
+
             ba = self.utilities.getBandAngles(tree)
             keyProperties['bandProperties'] = [{
                 'BandName': bandProperties[b]['bandName'], 
@@ -431,14 +419,14 @@ class Sentinel2TileBuilder(object):
                 'AzimuthAngle': ba[bandProperties[b]['bandIndex']]['AzimuthAngle'],
                 'Unit': ba[bandProperties[b]['bandIndex']]['Unit']
                 } for b in bandProperties if b in Rxm[resolution]['bandKeys']]
-            print("--- nastabujem buildItem")
+
             buildItem['itemURI'] = {'displayName': self.utilities.getDisplayName(path) if not (buildItemsList) else None, 
                                     'groupName': self.utilities.getGroupName(path)}
             buildItem['spatialReference'] = srsEPSG
             buildItem['footprint'] = footprint_geometry
             buildItem['keyProperties'] = keyProperties
             buildItemsList.append(buildItem)
-            print("----Builder hotovo")
+
             return buildItemsList
 
         except:
@@ -459,7 +447,6 @@ class Sentinel220mTileBuilder(Sentinel2TileBuilder):
 class Sentinel220mCloudTileBuilder(Sentinel2TileBuilder):
 
     def build(self, itemURI):
-        print("Building 20m cloud product.")
         return self.buildResolution(itemURI, '20c')
 
 
