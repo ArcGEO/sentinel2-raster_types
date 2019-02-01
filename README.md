@@ -12,7 +12,10 @@ The raster storage on Amazon S3 is organized to a file system structure with met
 - *Sentinel-2-L2A-10mTile* which is a 4-band raster (red, green, blue and near infrared) with 10m/px resolution
 - *Sentinel-2-L2A-20mTile* which is a 9-band raster with 20m/px resolution
 - *Sentinel-2-L2A-20mTileCloud* which is a 10-band raster with 20m/px resolution, similar to Sentinel-2-L2A-20mTile with additional cloud mast raster band B00.
+
 These multiband rasters are created from R10m, R20m source image folders and their content.
+
+
 *Acquisition Date*, *Cloud Coverage* and *Vegetation Percentage* attributes are also added to filter resulting rasters.
 
 ![Raster Attributes](./images/RasterAttributes.png)
@@ -26,8 +29,13 @@ Tested under ArcGIS Pro 2.2 and 2.3.
 
 <img src="./images/NewRasterTypes.png" width="440">
 
-### Loading tiles
-You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. However, I provide also sample script (*SentinelImporter.py*) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
+### Loading Tiles
+You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, to load the rasters to a mosaic dataset. Just use the *metadata.xml* file in the source tile root directory as the raster file.
+
+<img src="./images/AddRasterToMosaicDataset.png" width="440">
+
+
+However, I provide also sample script ([SentinelImporter.py](./SentinelImporter.py)) that can help you to create the mosaic dataset and load all tiles from a directory (recursive).
 
 To create a mosaic dataset for your imaginery just call (just take care of the spatial reference)
 ```SentinelImporter.createMosaicDataset(workspace, "mosaic_dataset_name", "10m", arcpy.SpatialReference(32634))```
