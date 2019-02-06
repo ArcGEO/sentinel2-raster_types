@@ -8,7 +8,11 @@ The granules are also cut to 100x100km tiles according to the military grid ([km
 
 > For Level-1C and Level-2A, the granules, also called tiles, are 100x100 km2 ortho-images in UTM/WGS84 projection. Download the Sentinel-2 tiling grid kml. The UTM (Universal Transverse Mercator) system divides the Earth's surface into 60 zones. Each UTM zone has a vertical width of 6° of longitude and horizontal width of 8° of latitude. [Further Details](https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products)
 
-The raster storage on Amazon S3 is organized to a file system structure with metadata and images for every band in separate files. This Sentinel-2 raster type allows you to read the file structure and load the rasters to mosaic dataset in ArcGIS Pro. 3 new raster products become available after installation
+The raster storage on Amazon S3 is organized to a file system structure with metadata and images for every band in separate files. This Sentinel-2 raster type allows you to read the file structure and load the rasters to mosaic dataset in ArcGIS Pro. 
+![Tiles File Structure](./images/TilesFileStructure.png)
+
+
+3 new raster products become available after installation
 - *Sentinel-2-L2A-10mTile* which is a 4-band raster (red, green, blue and near infrared) with 10m/px resolution
 - *Sentinel-2-L2A-20mTile* which is a 9-band raster with 20m/px resolution
 - *Sentinel-2-L2A-20mTileCloud* which is a 10-band raster with 20m/px resolution, similar to Sentinel-2-L2A-20mTile with additional cloud mast raster band B00.
