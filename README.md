@@ -30,6 +30,7 @@ named *Sentinel-2-Tile* and copy the `Sentinel-2-Tile.py` python file and raster
 
 After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
 It has been tested under ArcGIS Pro 2.2 and 2.3.
+
 <img src="./images/NewRasterTypes.png" width="440">
 
 ### Loading Tiles
