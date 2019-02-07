@@ -24,11 +24,12 @@ These multiband rasters are created from source images in the R10m, R20m folders
 
 ### Instalation
 To install create a new directory under 
-`C:\Program Files\ArcGIS\Pro\Resources\Raster\Types\System\`
+`C:\Program Files\ArcGIS\Pro\Resources\Raster\Types\`
 named *Sentinel-2-Tile* and copy the `Sentinel-2-Tile.py` python file and raster function templates `*.rft.xml` to the directory.
-After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
-Tested under ArcGIS Pro 2.2 and 2.3.
+![Install Folder](./images/InstallFolder.png)
 
+After restarting ArcGIS Pro new raster types will become available in the *Add Rasters to Mosaic Dataset* geoprocessing tool.
+It has been tested under ArcGIS Pro 2.2 and 2.3.
 <img src="./images/NewRasterTypes.png" width="440">
 
 ### Loading Tiles
@@ -36,8 +37,10 @@ You can use standard geoprocessing tools, e.g. *Add Rasters to Mosaic Dataset*, 
 
 <img src="./images/AddRasterToMosaicDataset.png" width="440">
 
+##### Toolbox
 However, I also provide [python geoprocessing toolbox](./Toolbox/Sentinel-2-Toolbox.zip) with tools that help you to create appropriate mosaic dataset and add rasters to it. Three tools are included - *Create Mosaic Dataset*, *Create Cloud Mask FeatureClass*, *Add Tiles*.
 
+##### Script
 If you like to include it to a larger scenario you can use the sample script ([SentinelImporter.py](./SentinelImporter.py)) that can help you to create the mosaic dataset and add all tiles from a directory (recursive).
 
 To create a mosaic dataset for your imaginery just call (just take care of the spatial reference)
